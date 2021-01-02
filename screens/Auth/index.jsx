@@ -3,11 +3,12 @@ import React from "react";
 import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
-import { createStackNavigator } from "@react-navigation/stack";
+import { useDispatch } from "react-redux";
+import { signInAction } from "../../store/authReducer";
 
-const Stack = createStackNavigator();
+export const SignIn = ({ navigation }) => {
+  const dispatch = useDispatch();
 
-const SignIn = ({ navigation }) => {
   return (
     <View style={styles.signInContainer}>
       <TextInput mode="outlined" label="Email" />
@@ -16,6 +17,7 @@ const SignIn = ({ navigation }) => {
         style={styles.button}
         contentStyle={styles.buttonContent}
         mode="contained"
+        onPress={() => dispatch(signInAction())}
       >
         Sign In
       </Button>
@@ -29,7 +31,7 @@ const SignIn = ({ navigation }) => {
   );
 };
 
-const SignUp = ({ navigation }) => {
+export const SignUp = ({ navigation }) => {
   return (
     <View style={styles.signInContainer}>
       <TextInput mode="outlined" label="Email" />
@@ -54,7 +56,7 @@ const SignUp = ({ navigation }) => {
   );
 };
 
-function AuthScreen({ navigation }) {
+export default function Auth({ navigation }) {
   return (
     <View style={styles.authButtonsContainer}>
       <Button
@@ -73,16 +75,6 @@ function AuthScreen({ navigation }) {
         Register
       </Button>
     </View>
-  );
-}
-
-export default function Auth() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="Auth" component={AuthScreen} />
-      <Stack.Screen name="Sign In" component={SignIn} />
-      <Stack.Screen name="Sign Up" component={SignUp} />
-    </Stack.Navigator>
   );
 }
 
