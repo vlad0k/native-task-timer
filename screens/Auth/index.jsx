@@ -1,25 +1,53 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
-import { useDispatch } from "react-redux";
-import { signInAction } from "../../store/authReducer";
+import { useDispatch, useSelector } from "react-redux";
+import { signInAction, authIsLoadingSelector } from "../../store/authReducer";
 
 export const SignIn = ({ navigation }) => {
   const dispatch = useDispatch();
 
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+
+  const isFetching = useSelector(authIsLoadingSelector);
+
   return (
     <View style={styles.signInContainer}>
-      <TextInput mode="outlined" label="Email" />
-      <TextInput mode="outlined" label="Password" />
+      <TextInput
+        mode="outlined"
+        label="Email"
+        textContentType="emailAddress"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+      />
+      <TextInput
+        mode="outlined"
+        label="Password"
+        value={password}
+        textContentType="password"
+        onChangeText={(text) => setPassword(text)}
+      />
       <Button
         style={styles.button}
         contentStyle={styles.buttonContent}
         mode="contained"
-        onPress={() => dispatch(signInAction())}
+        onPress={() => dispatch(signInAction({ email, password }))}
       >
-        Sign In
+        {isFetching ? (
+          <ActivityIndicator size="small" color="white" />
+        ) : (
+          "Sign In"
+        )}
       </Button>
       <View style={styles.bottomMessage}>
         <Text>Dont have account yet? </Text>
@@ -65,7 +93,7 @@ export default function Auth({ navigation }) {
         mode="contained"
         onPress={() => navigation.navigate("Sign In")}
       >
-        Log in
+        "Log in"
       </Button>
       <Button
         style={styles.button}
