@@ -11,6 +11,10 @@ export const signInAction = createAction("auth/SIGN_IN");
 export const signInSuccessAction = createAction("auth/AUTHORIZE_SUCCEEDED");
 export const signInFailtureAction = createAction("auth/AUTHORIZE_FAILED");
 
+export const logoutAction = createAction("auth/LOGOUT");
+export const logoutSuccessAction = createAction("auth/LOGOUT_SUCCEEDED");
+export const logoutFailtureAction = createAction("auth/LOGOUT_FAILED");
+
 export default createReducer(initialState, {
   [signInAction]: (state) => {
     state.isFetching = true;
@@ -20,8 +24,15 @@ export default createReducer(initialState, {
     state.isAuthorized = true;
     state.user = action.payload;
   },
-  [signInFailtureAction]: (state) => {
+  [logoutSuccessAction]: (state) => {
     state.isFetching = false;
+    state.isAuthorized = false;
+    state.user = null;
+  },
+  [logoutAction]: (state) => {
+    state.isFetching = true;
+  },
+  [logoutSuccessAction]: (state) => {
     state.isAuthorized = false;
     state.user = null;
   },

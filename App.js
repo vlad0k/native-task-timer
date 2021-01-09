@@ -11,9 +11,9 @@ export default function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <StatusBar barStyle={"dark-content"} />
         <Root />
       </NavigationContainer>
+      <StatusBar barStyle={"dark-content"} backgroundColor="white" />
     </Provider>
   );
 }

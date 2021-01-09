@@ -13,6 +13,9 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-export const loginUser = async (e, p) => {
-  return await firebase.auth().signInWithEmailAndPassword(e, p);
+export const loginUser = async (email, password) => {
+  return await firebase.auth().signInWithEmailAndPassword(email, password);
+};
+export const logout = async () => {
+  return await firebase.auth().signOut();
 };
