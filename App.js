@@ -13,7 +13,6 @@ export default function App() {
       <NavigationContainer>
         <Root />
       </NavigationContainer>
-      <StatusBar barStyle={"dark-content"} backgroundColor="white" />
     </Provider>
   );
 }

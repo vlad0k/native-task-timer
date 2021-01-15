@@ -1,22 +1,30 @@
 import React from "react";
-import { View, Modal, SafeAreaView } from "react-native";
+import { View, Modal, SafeAreaView, StyleSheet } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 
-import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Formik } from "formik";
-import { addTaskAction } from "../../../store/tasksReducer";
+
+import { authUserSelector } from "../../../store/authReducer";
+
+import { dbRefTasks } from "../../../firebase";
 
 export default function NewTaskModal({ isOpen, onClose }) {
   //
-  const dispatch = useDispatch();
+  const user = useSelector(authUserSelector);
 
-  const formSubmitHandler = ({ name }) => {
-    dispatch(addTaskAction({ newTask: { name, start: Date.now() } }));
+  const formSubmitHandler = async ({ name }) => {
+    const newTask = { name, start: Date.now() };
+    const snap = await dbRefTasks.child(user).once("value");
+    const tasks = snap.val() ? [...snap.val(), newTask] : [newTask];
+    dbRefTasks.child(user).remove();
+    dbRefTasks.child(user).set(tasks);
+
     onClose();
   };
 
   return (
-    <Modal animationType="slide" visible={isOpen}>
+    <Modal animationType="slide" visible={isOpen} style={styles.modalContainer}>
       <Formik initialValues={{ name: "" }} onSubmit={formSubmitHandler}>
         {({ handleChange, handleBlur, handleSubmit, values }) => (
           <SafeAreaView>
@@ -38,3 +46,12 @@ export default function NewTaskModal({ isOpen, onClose }) {
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    width: "100%",
+    height: "100%",
+    padding: 8,
+    borderWidth: 0,
+  },
+});

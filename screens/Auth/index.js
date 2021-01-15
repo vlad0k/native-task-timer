@@ -7,6 +7,7 @@ import {
   Dimensions,
   Pressable,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
@@ -87,6 +88,7 @@ export const SignUp = ({ navigation }) => {
 export default function Auth({ navigation }) {
   return (
     <View style={styles.authButtonsContainer}>
+      <StatusBar barStyle="dark-content" />
       <Button
         style={styles.button}
         contentStyle={styles.buttonContent}

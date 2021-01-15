@@ -24,6 +24,7 @@ function* signIn(action) {
 function* logout() {
   try {
     yield call(firebaseLogout);
+    console.log("+");
     yield put(logoutSuccessAction());
   } catch (err) {
     yield put(logoutFailtureAction());

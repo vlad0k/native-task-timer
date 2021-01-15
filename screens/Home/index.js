@@ -1,17 +1,24 @@
-import React, { useCallback, useState } from "react";
-import { View, StyleSheet, Platform, Pressable } from "react-native";
+import React, { useEffect, useCallback, useState } from "react";
+
+import { View, StyleSheet, Platform, Pressable, StatusBar } from "react-native";
 import { Appbar, FAB, List, Paragraph, Text } from "react-native-paper";
-import { logoutAction } from "../../store/authReducer";
-import { useDispatch, useSelector } from "react-redux";
-import NewTaskModal from "./components/NewTaskModal";
 import { SwipeListView } from "react-native-swipe-list-view";
-import { deleteTaskAction, tasksListSelector } from "../../store/tasksReducer";
+
+import NewTaskModal from "./components/NewTaskModal";
+import TaskModal from "./components/TaskModal";
+
+import { useDispatch, useSelector } from "react-redux";
+import { authUserSelector, logoutAction } from "../../store/authReducer";
+
 import moment from "moment";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { dbRefTasks } from "../../firebase";
 
 export default function Home() {
   const dispatch = useDispatch();
-  const tasks = useSelector(tasksListSelector);
+  const user = useSelector(authUserSelector);
+
+  const [tasks, setTasks] = useState([]);
+  const [openTaskModal, setOpenTaskModal] = useState(null);
 
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
 
@@ -27,20 +34,36 @@ export default function Home() {
     dispatch(deleteTaskAction(index));
   };
 
+  useEffect(() => {
+    dbRefTasks.child(user).on("value", (snap) => {
+      setTasks(snap.val() || []);
+    });
+  }, []);
+
+  const removeTask = useCallback(async (start) => {
+    const tasks = (await dbRefTasks.child(user).once("value")).val();
+    dbRefTasks.child(user).remove();
+    dbRefTasks.child(user).set(tasks.filter((task) => task.start !== start));
+  }, []);
+
+  const closeTaskModal = useCallback(async (start) => {
+    setOpenTaskModal(null);
+  }, []);
+
   const renderItem = (data) => {
     const { name, start } = data.item;
     return (
       <List.Item
-        key={start}
         style={styles.listItem}
         title={name}
-        description={moment(start).format("HH:MM:SS DD-MM-YY")}
-        left={(props) => <List.Icon {...props} icon="clock" />}
+        description={moment(start).format("DD MMM YYYY HH:MM:SS")}
+        left={(props) => <List.Icon {...props} color="#FBC02D" icon="clock" />}
         right={(props) => (
           <View {...props} style={styles.itemRight}>
             <Paragraph>{moment(start).fromNow()}</Paragraph>
           </View>
         )}
+        onPress={() => setOpenTaskModal(data.item)}
       />
     );
   };
@@ -49,7 +72,7 @@ export default function Home() {
     const { start } = data.item;
 
     return (
-      <Pressable onPress={() => deleteRowItem(start)}>
+      <Pressable onPress={() => removeTask(start)} key={start}>
         <View style={styles.deleteRowButton}>
           <Text style={styles.deleteRowButtonText}>Delete</Text>
         </View>
@@ -57,18 +80,18 @@ export default function Home() {
     );
   };
 
+  console.log(openTaskModal);
   return (
-    <>
-      <Appbar.Header
-        style={styles.appBar}
-        statusBarHeight={Platform.OS === "android" && 0}
-      >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      <Appbar.Header statusBarHeight={Platform.OS === "android" && 0}>
         <Appbar.Content title="Task Timer" />
         <Appbar.Action icon="logout" onPress={logOutButtonHandler} />
       </Appbar.Header>
 
       <SwipeListView
-        data={tasks}
+        data={tasks.map((task) => ({ key: `${task.start}`, ...task }))}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         rightOpenValue={-75}
@@ -80,12 +103,22 @@ export default function Home() {
           onClose={() => setIsNewTaskModalOpen(false)}
         />
       )}
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => setIsNewTaskModalOpen(true)}
-      />
-    </>
+      {!openTaskModal && (
+        <FAB
+          style={styles.fab}
+          icon="plus"
+          onPress={() => setIsNewTaskModalOpen(true)}
+        />
+      )}
+
+      {openTaskModal && (
+        <TaskModal
+          isOpen={openTaskModal}
+          onClose={closeTaskModal}
+          task={openTaskModal}
+        />
+      )}
+    </View>
   );
 }
 
@@ -102,9 +135,6 @@ const styles = StyleSheet.create({
   },
   appBar: {
     backgroundColor: "white",
-  },
-  appBarText: {
-    // fontWeight: "700",
   },
   fab: {
     position: "absolute",

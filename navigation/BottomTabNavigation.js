@@ -10,10 +10,16 @@ const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigation() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      tabBarOptions={{
+        activeTintColor: "#9C27B0",
+        inactiveTintColor: "gray",
+      }}
+    >
       <Tab.Screen
         name="Home"
         component={Home}
+        color={"#9C27B0"}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="timer-outline" size={size} color={color} />

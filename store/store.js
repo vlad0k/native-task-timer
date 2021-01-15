@@ -7,13 +7,11 @@ import authReducer from "./authReducer";
 import mySaga from "./sagas";
 
 import createSagaMiddleware from "redux-saga";
-import tasksReducer from "./tasksReducer";
 
 const sagaMiddleware = createSagaMiddleware();
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  tasks: tasksReducer,
 });
 
 const persistConfig = {

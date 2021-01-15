@@ -19,12 +19,12 @@ export default createReducer(initialState, {
   [signInAction]: (state) => {
     state.isFetching = true;
   },
-  [signInSuccessAction]: (state, action) => {
+  [signInSuccessAction.type]: (state, action) => {
     state.isFetching = false;
     state.isAuthorized = true;
     state.user = action.payload;
   },
-  [logoutSuccessAction]: (state) => {
+  [signInFailtureAction]: (state) => {
     state.isFetching = false;
     state.isAuthorized = false;
     state.user = null;
@@ -33,8 +33,12 @@ export default createReducer(initialState, {
     state.isFetching = true;
   },
   [logoutSuccessAction]: (state) => {
+    state.isFetching = false;
     state.isAuthorized = false;
     state.user = null;
+  },
+  [logoutFailtureAction]: (state) => {
+    state.isFetching = false;
   },
 });
 
@@ -48,4 +52,9 @@ export const authIsAuthorizedSelector = createSelector(
 export const authIsLoadingSelector = createSelector(
   authSelector,
   (auth) => auth.isFetching
+);
+
+export const authUserSelector = createSelector(
+  authSelector,
+  (auth) => auth.user
 );
