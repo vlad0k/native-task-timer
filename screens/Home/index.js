@@ -1,14 +1,7 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { View, StyleSheet, Platform, Pressable, StatusBar } from "react-native";
-import {
-  Appbar,
-  FAB,
-  List,
-  Paragraph,
-  Text,
-  Divider,
-} from "react-native-paper";
+import { Appbar, FAB, List, Text, Divider } from "react-native-paper";
 import { SwipeListView } from "react-native-swipe-list-view";
 
 import NewTaskModal from "./components/NewTaskModal";
@@ -16,14 +9,17 @@ import TaskModal from "./components/TaskModal";
 
 import { useDispatch, useSelector } from "react-redux";
 import { authUserSelector, logoutAction } from "../../store/authReducer";
+import { tasksTasksSelector } from "../../store/tasksReducer";
+
+import { dbRefTasks } from "../../firebase";
 
 import moment from "moment";
 
 export default function Home() {
   const dispatch = useDispatch();
   const user = useSelector(authUserSelector);
+  const tasks = useSelector(tasksTasksSelector);
 
-  const [tasks, tasksTasksSelector] = useState([]);
   const [openTaskModal, setOpenTaskModal] = useState(null);
 
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
@@ -32,17 +28,20 @@ export default function Home() {
     dispatch(logoutAction());
   }, [dispatch]);
 
-  const removeTask = useCallback(async (start) => {
-    const tasks = (await dbRefTasks.child(user).once("value")).val();
-    dbRefTasks.child(user).remove();
-    dbRefTasks.child(user).set(tasks.filter((task) => task.start !== start));
-  }, []);
+  const removeTask = useCallback(
+    async (start) => {
+      const tasks = (await dbRefTasks.child(user).once("value")).val();
+      dbRefTasks.child(user).remove();
+      dbRefTasks.child(user).set(tasks.filter((task) => task.start !== start));
+    },
+    [tasks]
+  );
 
   const closeTaskModal = useCallback(() => {
     setOpenTaskModal(null);
   }, []);
 
-  const renderItem = (data) => {
+  const renderItem = useCallback((data) => {
     const { name, start, end } = data.item;
     return (
       <Pressable onPress={() => setOpenTaskModal(data.item)}>
@@ -68,9 +67,9 @@ export default function Home() {
         </>
       </Pressable>
     );
-  };
+  }, []);
 
-  const renderHiddenItem = (data) => {
+  const renderHiddenItem = useCallback((data) => {
     const { start } = data.item;
 
     return (
@@ -80,7 +79,7 @@ export default function Home() {
         </View>
       </Pressable>
     );
-  };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -92,7 +91,7 @@ export default function Home() {
       </Appbar.Header>
 
       <SwipeListView
-        data={tasks.map((task) => ({ key: `${task.start}`, ...task }))}
+        data={(tasks || []).map((task) => ({ key: `${task.start}`, ...task }))}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
         rightOpenValue={-75}

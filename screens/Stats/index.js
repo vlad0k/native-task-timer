@@ -1,15 +1,28 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, StatusBar, SafeAreaView, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { Headline } from "react-native-paper";
+import WeekSelector from "./components/WeekSelector";
+import moment from "moment";
 
 export default function Stats() {
+  const [selectedWeek, setSelectedWeek] = useState([
+    moment.utc().startOf("isoWeek"),
+    moment.utc().endOf("isoWeek"),
+  ]);
+
+  useEffect(() => console.log(selectedWeek), []);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView>
         <View style={{ padding: 8 }}>
           <Headline style={{ padding: 8, fontWeight: "bold" }}>Stats</Headline>
+          <WeekSelector
+            currentWeek={selectedWeek}
+            setCurrentWeek={setSelectedWeek}
+          />
           <View>
             <LineChart
               data={{
