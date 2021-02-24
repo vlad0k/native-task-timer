@@ -1,7 +1,14 @@
 import React, { useEffect, useCallback, useState } from "react";
 
 import { View, StyleSheet, Platform, Pressable, StatusBar } from "react-native";
-import { Appbar, FAB, List, Paragraph, Text } from "react-native-paper";
+import {
+  Appbar,
+  FAB,
+  List,
+  Paragraph,
+  Text,
+  Divider,
+} from "react-native-paper";
 import { SwipeListView } from "react-native-swipe-list-view";
 
 import NewTaskModal from "./components/NewTaskModal";
@@ -11,13 +18,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { authUserSelector, logoutAction } from "../../store/authReducer";
 
 import moment from "moment";
-import { dbRefTasks } from "../../firebase";
 
 export default function Home() {
   const dispatch = useDispatch();
   const user = useSelector(authUserSelector);
 
-  const [tasks, setTasks] = useState([]);
+  const [tasks, tasksTasksSelector] = useState([]);
   const [openTaskModal, setOpenTaskModal] = useState(null);
 
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
@@ -26,45 +32,41 @@ export default function Home() {
     dispatch(logoutAction());
   }, [dispatch]);
 
-  const deleteRowItem = (start) => {
-    const index = tasks.findIndex(
-      ({ start: taskStart }) => taskStart === start
-    );
-
-    dispatch(deleteTaskAction(index));
-  };
-
-  useEffect(() => {
-    dbRefTasks.child(user).on("value", (snap) => {
-      setTasks(snap.val() || []);
-    });
-  }, []);
-
   const removeTask = useCallback(async (start) => {
     const tasks = (await dbRefTasks.child(user).once("value")).val();
     dbRefTasks.child(user).remove();
     dbRefTasks.child(user).set(tasks.filter((task) => task.start !== start));
   }, []);
 
-  const closeTaskModal = useCallback(async (start) => {
+  const closeTaskModal = useCallback(() => {
     setOpenTaskModal(null);
   }, []);
 
   const renderItem = (data) => {
-    const { name, start } = data.item;
+    const { name, start, end } = data.item;
     return (
-      <List.Item
-        style={styles.listItem}
-        title={name}
-        description={moment(start).format("DD MMM YYYY HH:MM:SS")}
-        left={(props) => <List.Icon {...props} color="#FBC02D" icon="clock" />}
-        right={(props) => (
-          <View {...props} style={styles.itemRight}>
-            <Paragraph>{moment(start).fromNow()}</Paragraph>
-          </View>
-        )}
-        onPress={() => setOpenTaskModal(data.item)}
-      />
+      <Pressable onPress={() => setOpenTaskModal(data.item)}>
+        <>
+          <List.Item
+            style={styles.listItem}
+            title={name}
+            description={
+              `Start: ${moment(start).format("DD MMM YYYY hh:mm:ss")}` +
+              (end
+                ? `\nDuration: ${moment.utc(end - start).format("HH:mm:ss")}`
+                : "")
+            }
+            left={(props) => (
+              <List.Icon
+                {...props}
+                color={end ? "#007E33" : "#FBC02D"}
+                icon={end ? "check-all" : "clock"}
+              />
+            )}
+          />
+          <Divider />
+        </>
+      </Pressable>
     );
   };
 
@@ -80,7 +82,6 @@ export default function Home() {
     );
   };
 
-  console.log(openTaskModal);
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -97,12 +98,14 @@ export default function Home() {
         rightOpenValue={-75}
         disableRightSwipe
       />
+
       {isNewTaskModalOpen && (
         <NewTaskModal
           isOpen={isNewTaskModalOpen}
           onClose={() => setIsNewTaskModalOpen(false)}
         />
       )}
+
       {!openTaskModal && (
         <FAB
           style={styles.fab}
@@ -113,9 +116,9 @@ export default function Home() {
 
       {openTaskModal && (
         <TaskModal
-          isOpen={openTaskModal}
+          isOpen={Boolean(openTaskModal)}
           onClose={closeTaskModal}
-          task={openTaskModal}
+          start={openTaskModal.start}
         />
       )}
     </View>
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   deleteRowButton: {
-    height: 69,
+    height: 78,
     alignItems: "flex-end",
     justifyContent: "center",
     paddingRight: 18,

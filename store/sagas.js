@@ -8,6 +8,8 @@ import {
   logoutSuccessAction,
   logoutFailtureAction,
 } from "./authReducer";
+import { getTasksAction, getTasksSuccessAction } from "./tasksReducer";
+
 import { loginUser, logout as firebaseLogout } from "../firebase";
 
 function* signIn(action) {
